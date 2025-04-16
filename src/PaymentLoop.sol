@@ -34,6 +34,7 @@ contract PaymentLoop is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     event LoopCreated(uint256 indexed loopId, address indexed recipient, uint256 amount, Interval interval);
     event LoopExecuted(uint256 indexed loopId, uint256 amount, uint256 timestamp);
+    event LoopUpdated(uint256 indexed loopId, address newRecipient, uint256 newAmount);
     event LoopPaused(uint256 indexed loopId);
     event LoopResumed(uint256 indexed loopId);
     event LoopCancelled(uint256 indexed loopId);
@@ -96,6 +97,17 @@ contract PaymentLoop is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(loops[_loopId].status == Status.Paused, "Not paused");
         loops[_loopId].status = Status.Active;
         emit LoopResumed(_loopId);
+    }
+
+    function updateLoop(uint256 _loopId, address _newRecipient, uint256 _newAmount) external onlyOwner {
+        require(loops[_loopId].status != Status.Cancelled, "Loop cancelled");
+        require(_newRecipient != address(0), "Invalid recipient");
+        require(_newAmount > 0, "Amount must be positive");
+
+        loops[_loopId].recipient = _newRecipient;
+        loops[_loopId].amount = _newAmount;
+
+        emit LoopUpdated(_loopId, _newRecipient, _newAmount);
     }
 
     function cancelLoop(uint256 _loopId) external onlyOwner {
