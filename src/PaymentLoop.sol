@@ -123,6 +123,34 @@ contract PaymentLoop is Initializable, OwnableUpgradeable, AccessControlUpgradea
         emit LoopCancelled(_loopId);
     }
 
+    function getLoopDetails(uint256 _loopId)
+        external
+        view
+        returns (
+            address recipient,
+            uint256 amount,
+            Interval interval,
+            uint256 nextExecution,
+            Status status,
+            uint256 executionCount
+        )
+    {
+        Loop memory loop = loops[_loopId];
+        return (
+            loop.recipient,
+            loop.amount,
+            loop.interval,
+            loop.nextExecution,
+            loop.status,
+            loop.executionCount
+        );
+    }
+
+    function isExecutable(uint256 _loopId) external view returns (bool) {
+        Loop memory loop = loops[_loopId];
+        return loop.status == Status.Active && block.timestamp >= loop.nextExecution;
+    }
+
     function _getIntervalSeconds(Interval _interval) internal pure returns (uint256) {
         if (_interval == Interval.Daily) return 1 days;
         if (_interval == Interval.Weekly) return 7 days;
