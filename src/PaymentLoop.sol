@@ -6,9 +6,12 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./PaymentInvoiceNFT.sol";
 
 contract PaymentLoop is Initializable, OwnableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXECUTOR_ROLE = keccak256("EXECUTOR_ROLE");
+
+    PaymentInvoiceNFT public invoiceNFT;
     enum Interval {
         Daily,
         Weekly,
@@ -41,7 +44,7 @@ contract PaymentLoop is Initializable, OwnableUpgradeable, AccessControlUpgradea
     event LoopResumed(uint256 indexed loopId);
     event LoopCancelled(uint256 indexed loopId);
 
-    function initialize(address _paymentToken) public initializer {
+    function initialize(address _paymentToken, address _invoiceNFT) public initializer {
         __Ownable_init(msg.sender);
         __AccessControl_init();
         __UUPSUpgradeable_init();
@@ -50,6 +53,7 @@ contract PaymentLoop is Initializable, OwnableUpgradeable, AccessControlUpgradea
         _grantRole(EXECUTOR_ROLE, msg.sender);
 
         paymentToken = IERC20(_paymentToken);
+        invoiceNFT = PaymentInvoiceNFT(_invoiceNFT);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -90,6 +94,8 @@ contract PaymentLoop is Initializable, OwnableUpgradeable, AccessControlUpgradea
 
         loop.nextExecution = block.timestamp + _getIntervalSeconds(loop.interval);
         loop.executionCount++;
+
+        invoiceNFT.mintInvoice(loop.recipient, _loopId, loop.amount, owner());
 
         emit LoopExecuted(_loopId, loop.amount, block.timestamp);
     }
