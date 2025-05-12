@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import "forge-std/Script.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "../src/PaymentLoop.sol";
+import "../src/PaymentInvoiceNFT.sol";
 
 contract DeployScript is Script {
     function run() external {
@@ -12,11 +13,20 @@ contract DeployScript is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        PaymentLoop implementation = new PaymentLoop();
+        PaymentInvoiceNFT nftImplementation = new PaymentInvoiceNFT();
+        bytes memory nftInitData = abi.encodeWithSelector(
+            PaymentInvoiceNFT.initialize.selector
+        );
+        ERC1967Proxy nftProxy = new ERC1967Proxy(
+            address(nftImplementation),
+            nftInitData
+        );
 
+        PaymentLoop implementation = new PaymentLoop();
         bytes memory initData = abi.encodeWithSelector(
             PaymentLoop.initialize.selector,
-            usdcAddress
+            usdcAddress,
+            address(nftProxy)
         );
 
         ERC1967Proxy proxy = new ERC1967Proxy(
@@ -24,8 +34,10 @@ contract DeployScript is Script {
             initData
         );
 
-        console.log("Implementation deployed at:", address(implementation));
-        console.log("Proxy deployed at:", address(proxy));
+        console.log("NFT Implementation deployed at:", address(nftImplementation));
+        console.log("NFT Proxy deployed at:", address(nftProxy));
+        console.log("PaymentLoop Implementation deployed at:", address(implementation));
+        console.log("PaymentLoop Proxy deployed at:", address(proxy));
 
         vm.stopBroadcast();
     }
