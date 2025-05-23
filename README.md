@@ -24,3 +24,22 @@ forge test
 ## Deployment
 
 Contracts are deployed via GitHub Actions to Base Mainnet and Sepolia testnet.
+
+## Testing
+
+```bash
+make test
+make coverage
+```
+
+## Scripts
+
+Create a payment loop:
+```bash
+forge script script/CreateLoop.s.sol --rpc-url base --broadcast
+```
+
+Execute a loop:
+```bash
+forge script script/ExecuteLoop.s.sol --rpc-url base --broadcast
+```
