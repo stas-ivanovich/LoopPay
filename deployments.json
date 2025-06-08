@@ -1,0 +1,12 @@
+{
+  "base": {
+    "PaymentLoop": "",
+    "PaymentInvoiceNFT": "",
+    "PaymentLoopFactory": ""
+  },
+  "base_sepolia": {
+    "PaymentLoop": "",
+    "PaymentInvoiceNFT": "",
+    "PaymentLoopFactory": ""
+  }
+}
