@@ -1,0 +1,18 @@
+LoopPay Architecture
+
+Core Components:
+1. PaymentLoop.sol - Main contract managing recurring payments
+2. PaymentInvoiceNFT.sol - ERC721 contract for payment receipts
+3. PaymentLoopFactory.sol - Factory for deploying new instances
+
+Design Patterns:
+- UUPS Proxy for upgradeability
+- Role-based access control (RBAC)
+- ReentrancyGuard for security
+
+Data Flow:
+1. Owner creates loop with recipient + amount + interval
+2. Executor calls executeLoop when nextExecution <= block.timestamp
+3. USDC transferred from owner to recipient
+4. NFT invoice minted to recipient
+5. nextExecution updated for next cycle
