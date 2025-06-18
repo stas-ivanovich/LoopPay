@@ -1,0 +1,13 @@
+{
+  "name": "looppay",
+  "version": "1.0.0",
+  "description": "Recurring payment automation for Base",
+  "scripts": {
+    "test": "forge test",
+    "build": "forge build",
+    "deploy:testnet": "forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast",
+    "deploy:mainnet": "forge script script/Deploy.s.sol --rpc-url base --broadcast"
+  },
+  "keywords": ["base", "payments", "defi", "web3"],
+  "license": "MIT"
+}
