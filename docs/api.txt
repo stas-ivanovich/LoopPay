@@ -1,0 +1,29 @@
+API Reference
+
+PaymentLoop Contract
+
+Write Functions:
+- createLoop(address recipient, uint256 amount, Interval interval) returns (uint256)
+  Creates a new recurring payment loop
+
+- executeLoop(uint256 loopId)
+  Executes a payment if nextExecution <= block.timestamp
+
+- pauseLoop(uint256 loopId)
+  Pauses an active loop
+
+- resumeLoop(uint256 loopId)
+  Resumes a paused loop
+
+- cancelLoop(uint256 loopId)
+  Cancels a loop permanently
+
+- updateLoop(uint256 loopId, address newRecipient, uint256 newAmount)
+  Updates recipient and amount for a loop
+
+View Functions:
+- getLoopDetails(uint256 loopId) returns (address, uint256, Interval, uint256, Status, uint256)
+  Returns all loop data
+
+- isExecutable(uint256 loopId) returns (bool)
+  Checks if loop is ready for execution
