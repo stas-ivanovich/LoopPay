@@ -1,0 +1,8 @@
+Gas Report (Estimated)
+
+createLoop: ~120,000 gas
+executeLoop: ~150,000 gas
+pauseLoop: ~30,000 gas
+resumeLoop: ~30,000 gas
+cancelLoop: ~30,000 gas
+updateLoop: ~35,000 gas
