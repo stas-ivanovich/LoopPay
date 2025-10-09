@@ -1,0 +1,19 @@
+Deployment Guide
+
+Prerequisites:
+- Foundry installed
+- Private key in .env
+- Base RPC URL configured
+- USDC address for target network
+
+Steps:
+1. Set environment variables in .env
+2. Run: forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast
+3. Save proxy addresses from output
+4. Verify contracts on Basescan
+5. Grant EXECUTOR_ROLE to automation address
+
+Post-deployment:
+- Test with small amounts first
+- Monitor gas costs
+- Set up off-chain executor
