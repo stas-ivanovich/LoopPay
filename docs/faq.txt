@@ -1,0 +1,25 @@
+Frequently Asked Questions
+
+Q: What tokens are supported?
+A: Currently only USDC on Base network.
+
+Q: Can I change the payment amount after creation?
+A: Yes, use the updateLoop function.
+
+Q: What happens if the payment fails?
+A: The transaction will revert and can be retried later.
+
+Q: How do I cancel a recurring payment?
+A: Call cancelLoop with the loop ID. This is permanent.
+
+Q: Are contracts upgradeable?
+A: Yes, using UUPS proxy pattern. Only owner can upgrade.
+
+Q: What are the gas costs?
+A: Approximately 120-150k gas per transaction.
+
+Q: Can I use this with a smart wallet?
+A: Yes, compatible with Coinbase Smart Wallet.
+
+Q: Is there a UI?
+A: Not yet, currently contract-only interaction.
