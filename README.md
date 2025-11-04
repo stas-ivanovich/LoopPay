@@ -7,8 +7,10 @@ Recurring payment automation system for Base network.
 - USDC-based recurring payments (daily, weekly, monthly)
 - Upgradeable smart contracts (UUPS proxy pattern)
 - Pause, resume, and cancel payment loops
-- Compatible with Base smart wallets
+- Compatible with Base smart wallets and Account abstraction
 - On-chain execution verification
+- NFT invoice generation for payment receipts
+- Factory contract for easy deployment
 
 ## Architecture
 
@@ -43,3 +45,11 @@ Execute a loop:
 ```bash
 forge script script/ExecuteLoop.s.sol --rpc-url base --broadcast
 ```
+
+## Security
+
+⚠️ This project has not been audited. Use at your own risk.
+
+## License
+
+MIT License - see LICENSE file
