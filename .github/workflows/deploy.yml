@@ -34,7 +34,6 @@ jobs:
       - name: Deploy contracts
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          USDC_ADDRESS: ${{ secrets.USDC_ADDRESS }}
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
         run: |
           forge script script/Deploy.s.sol:DeployScript --rpc-url ${{ steps.rpc.outputs.url }} --broadcast --verify
