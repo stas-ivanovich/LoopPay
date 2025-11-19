@@ -21,7 +21,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
-        run: forge install --no-git
+        run: git submodule update --init --recursive
 
       - name: Set RPC URL
         id: rpc
