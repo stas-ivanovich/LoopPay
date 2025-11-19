@@ -15,7 +15,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
-        run: forge install --no-commit
+        run: forge install --no-git
 
       - name: Run tests
         run: forge test -vvv

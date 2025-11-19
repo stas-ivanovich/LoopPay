@@ -14,7 +14,7 @@ jobs:
       - name: Install Foundry
 
       - name: Install dependencies
-        run: forge install --no-commit
+        run: forge install --no-git
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Run all checks

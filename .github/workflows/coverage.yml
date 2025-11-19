@@ -10,13 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
 
       - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
-        run: forge install --no-commit
-        uses: foundry-rs/foundry-toolchain@v1
+        run: forge install --no-git
 
       - name: Run coverage
         run: forge coverage --report lcov
