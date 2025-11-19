@@ -7,13 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
 
       - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
         run: forge install --no-git
-        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Build contracts
         run: forge build --sizes
