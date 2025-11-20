@@ -3,14 +3,20 @@
     "chainId": 8453,
     "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     "PaymentLoop": {
-      "implementation": "",
-      "proxy": ""
+      "implementation": "0x4f9CaF3A0A909db10cBfE7F740427302F5717E00",
+      "proxy": "0x8D316D1E06a07524549a7407150C1325e19Ba7eD"
     },
     "PaymentInvoiceNFT": {
-      "implementation": "",
-      "proxy": ""
+      "implementation": "0xDf5A774f33b530739e521dc96ccAD00A593A5245",
+      "proxy": "0x36447281411923ba6c27b29d82b4F47B61F87446"
     },
-    "PaymentLoopFactory": ""
+    "PaymentLoopFactory": "",
+    "deployedAt": "2025-11-20",
+    "verified": true,
+    "basescanUrls": {
+      "PaymentLoop": "https://basescan.org/address/0x8d316d1e06a07524549a7407150c1325e19ba7ed",
+      "PaymentInvoiceNFT": "https://basescan.org/address/0x36447281411923ba6c27b29d82b4f47b61f87446"
+    }
   },
   "base_sepolia": {
     "chainId": 84532,
