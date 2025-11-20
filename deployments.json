@@ -1,12 +1,40 @@
 {
   "base": {
-    "PaymentLoop": "",
-    "PaymentInvoiceNFT": "",
-    "PaymentLoopFactory": ""
+    "chainId": 8453,
+    "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "PaymentLoop": {
+      "implementation": "0x4f9CaF3A0A909db10cBfE7F740427302F5717E00",
+      "proxy": "0x8D316D1E06a07524549a7407150C1325e19Ba7eD"
+    },
+    "PaymentInvoiceNFT": {
+      "implementation": "0xDf5A774f33b530739e521dc96ccAD00A593A5245",
+      "proxy": "0x36447281411923ba6c27b29d82b4F47B61F87446"
+    },
+    "PaymentLoopFactory": "",
+    "deployedAt": "2025-11-20",
+    "verified": true,
+    "basescanUrls": {
+      "PaymentLoop": "https://basescan.org/address/0x8d316d1e06a07524549a7407150c1325e19ba7ed",
+      "PaymentInvoiceNFT": "https://basescan.org/address/0x36447281411923ba6c27b29d82b4f47b61f87446"
+    }
   },
   "base_sepolia": {
-    "PaymentLoop": "",
-    "PaymentInvoiceNFT": "",
-    "PaymentLoopFactory": ""
+    "chainId": 84532,
+    "usdc": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "PaymentLoop": {
+      "implementation": "0xF64ddF46579bce0cC934F80151CB04582Cc507e9",
+      "proxy": "0xaFe4b559751923Ab85615d539BdE0fa36172A0B9"
+    },
+    "PaymentInvoiceNFT": {
+      "implementation": "0xc66C322B97698cF43dEA1ceE14b2526a37047dA4",
+      "proxy": "0x699a29b2e49E3D4F5D5a8a883c82BB65Ff851C74"
+    },
+    "PaymentLoopFactory": "",
+    "deployedAt": "2025-11-20",
+    "verified": true,
+    "basescanUrls": {
+      "PaymentLoop": "https://sepolia.basescan.org/address/0xafe4b559751923ab85615d539bde0fa36172a0b9",
+      "PaymentInvoiceNFT": "https://sepolia.basescan.org/address/0x699a29b2e49e3d4f5d5a8a883c82bb65ff851c74"
+    }
   }
 }

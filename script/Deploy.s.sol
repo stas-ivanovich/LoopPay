@@ -5,11 +5,37 @@ import "forge-std/Script.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "../src/PaymentLoop.sol";
 import "../src/PaymentInvoiceNFT.sol";
+import "../src/constants/Constants.sol";
 
 contract DeployScript is Script {
+    function getUSDCAddress() internal view returns (address) {
+        uint256 chainId = block.chainid;
+        if (chainId == 8453) {
+            return Constants.BASE_USDC_MAINNET;
+        } else if (chainId == 84532) {
+            return Constants.BASE_USDC_SEPOLIA;
+        } else {
+            revert("Unsupported network");
+        }
+    }
+
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address usdcAddress = vm.envAddress("USDC_ADDRESS");
+        // Get private key as string to handle both formats (with or without 0x prefix)
+        string memory pkString = vm.envString("PRIVATE_KEY");
+
+        // Check if PRIVATE_KEY is set
+        require(bytes(pkString).length > 0, "PRIVATE_KEY environment variable is not set. Please add it to GitHub Secrets.");
+        require(bytes(pkString).length >= 64, "PRIVATE_KEY is too short. Must be at least 64 hex characters.");
+
+        // Add 0x prefix if not present
+        if (bytes(pkString).length >= 2) {
+            if (!(bytes(pkString)[0] == 0x30 && bytes(pkString)[1] == 0x78)) { // Check for '0x'
+                pkString = string(abi.encodePacked("0x", pkString));
+            }
+        }
+
+        uint256 deployerPrivateKey = vm.parseUint(pkString);
+        address usdcAddress = getUSDCAddress();
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -34,6 +60,8 @@ contract DeployScript is Script {
             initData
         );
 
+        console.log("Network Chain ID:", block.chainid);
+        console.log("Using USDC at:", usdcAddress);
         console.log("NFT Implementation deployed at:", address(nftImplementation));
         console.log("NFT Proxy deployed at:", address(nftProxy));
         console.log("PaymentLoop Implementation deployed at:", address(implementation));

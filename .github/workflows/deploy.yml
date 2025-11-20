@@ -16,18 +16,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
+      - name: Install dependencies
+        run: |
+          forge install foundry-rs/forge-std@v1.9.4
+          forge install OpenZeppelin/openzeppelin-contracts@v5.0.2
+          forge install OpenZeppelin/openzeppelin-contracts-upgradeable@v5.0.2
+
+      - name: Set RPC URL
+        id: rpc
+        run: |
+          if [ "${{ inputs.network }}" == "base" ]; then
+            echo "url=${{ secrets.BASE_RPC_URL || 'https://mainnet.base.org' }}" >> $GITHUB_OUTPUT
+          else
+            echo "url=${{ secrets.BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org' }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deploy contracts
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
-          BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
-          USDC_ADDRESS: ${{ secrets.USDC_ADDRESS }}
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
         run: |
-          forge script script/Deploy.s.sol:DeployScript --rpc-url ${{ inputs.network }} --broadcast --verify
+          forge script script/Deploy.s.sol:DeployScript --rpc-url ${{ steps.rpc.outputs.url }} --broadcast --verify
