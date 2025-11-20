@@ -84,7 +84,7 @@ contract PaymentLoop is Initializable, OwnableUpgradeable, AccessControlUpgradea
         return loopId;
     }
 
-    function executeLoop(uint256 _loopId) external onlyRole(EXECUTOR_ROLE) nonReentrant {
+    function executeLoop(uint256 _loopId) external virtual onlyRole(EXECUTOR_ROLE) nonReentrant {
         Loop storage loop = loops[_loopId];
         require(loop.status == Status.Active, "Loop not active");
         require(block.timestamp >= loop.nextExecution, "Too early");
