@@ -23,6 +23,10 @@ contract DeployScript is Script {
         // Get private key as string to handle both formats (with or without 0x prefix)
         string memory pkString = vm.envString("PRIVATE_KEY");
 
+        // Check if PRIVATE_KEY is set
+        require(bytes(pkString).length > 0, "PRIVATE_KEY environment variable is not set. Please add it to GitHub Secrets.");
+        require(bytes(pkString).length >= 64, "PRIVATE_KEY is too short. Must be at least 64 hex characters.");
+
         // Add 0x prefix if not present
         if (bytes(pkString).length >= 2) {
             if (!(bytes(pkString)[0] == 0x30 && bytes(pkString)[1] == 0x78)) { // Check for '0x'
