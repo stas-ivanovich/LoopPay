@@ -20,7 +20,17 @@ contract DeployScript is Script {
     }
 
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        // Get private key as string to handle both formats (with or without 0x prefix)
+        string memory pkString = vm.envString("PRIVATE_KEY");
+
+        // Add 0x prefix if not present
+        if (bytes(pkString).length >= 2) {
+            if (!(bytes(pkString)[0] == 0x30 && bytes(pkString)[1] == 0x78)) { // Check for '0x'
+                pkString = string(abi.encodePacked("0x", pkString));
+            }
+        }
+
+        uint256 deployerPrivateKey = vm.parseUint(pkString);
         address usdcAddress = getUSDCAddress();
 
         vm.startBroadcast(deployerPrivateKey);
