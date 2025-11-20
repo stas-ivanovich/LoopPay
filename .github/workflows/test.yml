@@ -16,9 +16,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          forge install foundry-rs/forge-std@v1.9.4 --no-commit
-          forge install OpenZeppelin/openzeppelin-contracts@v5.0.2 --no-commit
-          forge install OpenZeppelin/openzeppelin-contracts-upgradeable@v5.0.2 --no-commit
+          forge install foundry-rs/forge-std@v1.9.4
+          forge install OpenZeppelin/openzeppelin-contracts@v5.0.2
+          forge install OpenZeppelin/openzeppelin-contracts-upgradeable@v5.0.2
 
       - name: Run tests
         run: forge test -vvv
