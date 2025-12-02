@@ -37,3 +37,41 @@ jobs:
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
         run: |
           forge script script/v1/DeployLoopTemplateV1.s.sol:DeployLoopTemplateV1 --rpc-url ${{ steps.rpc.outputs.url }} --broadcast --verify
+
+      - name: Extract deployment addresses
+        id: addresses
+        run: |
+          BROADCAST_FILE=$(find broadcast/*/DeployLoopTemplateV1.s.sol -name "*.json" | tail -1)
+          if [ -f "$BROADCAST_FILE" ]; then
+            IMPL=$(jq -r '.transactions[] | select(.contractName == "LoopTemplateV1") | .contractAddress' $BROADCAST_FILE | head -1)
+            PROXY=$(jq -r '.transactions[] | select(.contractName == "ERC1967Proxy") | .contractAddress' $BROADCAST_FILE | head -1)
+            echo "implementation=$IMPL" >> $GITHUB_OUTPUT
+            echo "proxy=$PROXY" >> $GITHUB_OUTPUT
+            echo "Found Implementation: $IMPL"
+            echo "Found Proxy: $PROXY"
+          fi
+
+      - name: Save deployment info
+        run: |
+          NETWORK=${{ inputs.network }}
+          mkdir -p deployments/v1
+          cat > deployments/v1/${NETWORK}.json << EOF
+          {
+            "network": "${NETWORK}",
+            "chainId": "${{ inputs.network == 'base' && '8453' || '84532' }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "contracts": {
+              "LoopTemplateV1Implementation": "${{ steps.addresses.outputs.implementation }}",
+              "LoopTemplateV1Proxy": "${{ steps.addresses.outputs.proxy }}"
+            }
+          }
+          EOF
+          cat deployments/v1/${NETWORK}.json
+
+      - name: Commit deployment addresses
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add deployments/v1/${{ inputs.network }}.json
+          git commit -m "deploy: add ${{ inputs.network }} deployment addresses for LoopTemplateV1" || echo "No changes to commit"
+          git push
