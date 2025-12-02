@@ -16,15 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Install dependencies
-        run: |
-          forge install foundry-rs/forge-std@v1.9.4
-          forge install OpenZeppelin/openzeppelin-contracts@v5.0.2
-          forge install OpenZeppelin/openzeppelin-contracts-upgradeable@v5.0.2
 
       - name: Set RPC URL
         id: rpc
@@ -35,9 +31,9 @@ jobs:
             echo "url=${{ secrets.BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org' }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Deploy contracts
+      - name: Deploy LoopTemplateV1
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
         run: |
-          forge script script/Deploy.s.sol:DeployScript --rpc-url ${{ steps.rpc.outputs.url }} --broadcast --verify
+          forge script script/v1/DeployLoopTemplateV1.s.sol:DeployLoopTemplateV1 --rpc-url ${{ steps.rpc.outputs.url }} --broadcast --verify
