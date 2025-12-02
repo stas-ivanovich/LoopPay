@@ -3,13 +3,12 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./PaymentInvoiceNFT.sol";
 
-contract PaymentLoop is Initializable, OwnableUpgradeable, AccessControlUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+contract PaymentLoop is Initializable, OwnableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXECUTOR_ROLE = keccak256("EXECUTOR_ROLE");
 
     PaymentInvoiceNFT public invoiceNFT;
@@ -48,8 +47,6 @@ contract PaymentLoop is Initializable, OwnableUpgradeable, AccessControlUpgradea
     function initialize(address _paymentToken, address _invoiceNFT) public initializer {
         __Ownable_init(msg.sender);
         __AccessControl_init();
-        __ReentrancyGuard_init();
-        __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(EXECUTOR_ROLE, msg.sender);
@@ -84,7 +81,7 @@ contract PaymentLoop is Initializable, OwnableUpgradeable, AccessControlUpgradea
         return loopId;
     }
 
-    function executeLoop(uint256 _loopId) external virtual onlyRole(EXECUTOR_ROLE) nonReentrant {
+    function executeLoop(uint256 _loopId) external virtual onlyRole(EXECUTOR_ROLE) {
         Loop storage loop = loops[_loopId];
         require(loop.status == Status.Active, "Loop not active");
         require(block.timestamp >= loop.nextExecution, "Too early");

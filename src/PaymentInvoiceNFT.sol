@@ -24,7 +24,6 @@ contract PaymentInvoiceNFT is Initializable, ERC721Upgradeable, OwnableUpgradeab
     function initialize() public initializer {
         __ERC721_init("LoopPay Invoice", "LPINV");
         __Ownable_init(msg.sender);
-        __UUPSUpgradeable_init();
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

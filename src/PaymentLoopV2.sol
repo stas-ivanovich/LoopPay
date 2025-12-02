@@ -10,7 +10,7 @@ contract PaymentLoopV2 is PaymentLoop {
 
     event LoopTotalUpdated(uint256 indexed loopId, uint256 totalPaid);
 
-    function executeLoop(uint256 _loopId) external override onlyRole(EXECUTOR_ROLE) nonReentrant {
+    function executeLoop(uint256 _loopId) external override onlyRole(EXECUTOR_ROLE) {
         Loop storage loop = loops[_loopId];
         require(loop.status == Status.Active, "Loop not active");
         require(block.timestamp >= loop.nextExecution, "Too early");
