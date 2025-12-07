@@ -120,17 +120,10 @@ jobs:
           EOF
           cat deployments/${NETWORK}.json
 
-      - name: Import GPG key
-        run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-          echo "${{ secrets.GPG_KEY_ID }}:6:" | gpg --batch --import-ownertrust
-
       - name: Commit deployment addresses
         run: |
-          git config user.name "stas-ivanovich"
-          git config user.email "stativanov@outlook.com"
-          git config user.signingkey ${{ secrets.GPG_KEY_ID }}
-          git config commit.gpgsign true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add deployments/${{ inputs.network }}.json broadcast/
           git commit -m "deploy: LoopTemplateV1 and MandateV1 to ${{ inputs.network }}
@@ -146,5 +139,4 @@ jobs:
             Implementation: ${{ steps.addresses.outputs.mandate_implementation }}
             Proxy: ${{ steps.addresses.outputs.mandate_proxy }}" || echo "No changes to commit"
 
-          git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/stas-ivanovich/LoopPay.git
-          git push origin ${{ github.ref_name }}
+          git push

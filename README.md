@@ -77,12 +77,9 @@ ERC-721 contract for minting payment receipts as NFTs. Each invoice contains loo
 
 1. **Configure GitHub Secrets** at `Settings > Secrets and variables > Actions`:
    - `PRIVATE_KEY` - Deployer wallet private key
-   - `BASE_SEPOLIA_RPC_URL` - Base Sepolia RPC (default: https://sepolia.base.org)
-   - `BASE_RPC_URL` - Base Mainnet RPC (default: https://mainnet.base.org)
    - `BASESCAN_API_KEY` - BaseScan API key for verification
-   - `GPG_PRIVATE_KEY` - GPG private key for signed commits
-   - `GPG_KEY_ID` - GPG key ID
-   - `GH_PAT` - GitHub Personal Access Token
+   - `BASE_SEPOLIA_RPC_URL` - (Optional) Base Sepolia RPC (default: https://sepolia.base.org)
+   - `BASE_RPC_URL` - (Optional) Base Mainnet RPC (default: https://mainnet.base.org)
 
 2. **Run Deployment**:
    - Go to Actions → Deploy workflow
