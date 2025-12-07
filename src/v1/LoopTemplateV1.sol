@@ -15,7 +15,10 @@ contract LoopTemplateV1 is
     LoopTemplateErrors
 {
     function initialize(address initialOwner) external initializer {
-        __Ownable_init(initialOwner);
+        __Ownable_init();
+        if (initialOwner != msg.sender) {
+            _transferOwnership(initialOwner);
+        }
     }
 
     function createLoopTemplate(
