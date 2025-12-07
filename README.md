@@ -37,6 +37,26 @@ Enable recurring deposits, staking rewards distribution, or automated DCA (Dolla
 
 ## Smart Contracts
 
+### MandateV1
+User-controlled permission system for granting time-limited, revocable payment authorizations to apps and protocols. Built with UUPS upgradeability and comprehensive safety controls.
+
+**Key Functions:**
+- `createMandate(spender, token, perChargeLimit, totalLimit, cooldownSeconds, startTime, endTime)` - Grant payment permission with limits
+- `getMandate(mandateId)` - Query mandate details and status
+- `updateMandateLimits(mandateId, newPerChargeLimit, newTotalLimit)` - Adjust spending limits mid-life
+- `pauseMandate(mandateId)` / `resumeMandate(mandateId)` - Temporarily suspend permissions
+- `revokeMandate(mandateId)` - Permanently cancel a mandate
+
+**Mandate Properties:**
+- Per-charge and total spending limits
+- Cooldown period between debits
+- Start/end time bounds
+- Dynamic status (Active, Paused, Revoked, Expired)
+- Non-reentrancy protection
+- Owner-only access control
+
+[📖 Full Mandate Specification →](docs/MANDATE_SPEC.md)
+
 ### LoopTemplateV1
 Core billing loop contract with UUPS upgradeability. Defines recurring payment schedules with merchant, amount, and period configuration.
 
@@ -59,10 +79,47 @@ ERC-721 contract for minting payment receipts as NFTs. Each invoice contains loo
 **Base Sepolia (Chain ID: 84532)**
 - Coming soon
 
-## Integration Example
+## Integration Examples
+
+### Creating a Mandate
 
 ```solidity
-// Create a monthly subscription loop
+// User grants a subscription service permission to charge monthly
+uint256 mandateId = mandate.createMandate({
+    spender: subscriptionServiceAddress,
+    token: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913,  // USDC on Base Mainnet
+    perChargeLimit: 10e6,        // $10 USDC max per charge
+    totalLimit: 120e6,           // $120 total budget (12 months)
+    cooldownSeconds: 28 days,    // Minimum 28 days between charges
+    startTime: block.timestamp,
+    endTime: block.timestamp + 365 days
+});
+```
+
+### Managing Mandates
+
+```solidity
+// Check mandate status
+(address owner, address spender,, uint256 perCharge, uint256 total,
+ uint256 spent,,,,,, MandateStatus status,,) = mandate.getMandate(mandateId);
+
+// Pause temporarily
+mandate.pauseMandate(mandateId);
+
+// Resume later
+mandate.resumeMandate(mandateId);
+
+// Adjust limits
+mandate.updateMandateLimits(mandateId, 15e6, 180e6);
+
+// Revoke permanently
+mandate.revokeMandate(mandateId);
+```
+
+### Creating a Loop Template
+
+```solidity
+// Merchant creates a monthly subscription loop
 uint256 templateId = loopTemplate.createLoopTemplate(
     merchantAddress,
     100e6,  // 100 USDC
