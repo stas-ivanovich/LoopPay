@@ -71,13 +71,33 @@ Original payment loop implementation with executor role model and USDC integrati
 ### PaymentInvoiceNFT
 ERC-721 contract for minting payment receipts as NFTs. Each invoice contains loop ID, amount, timestamp, payer, and recipient data.
 
-## Network Deployments
+## Deployment
+
+### Automated Deployment via GitHub Actions
+
+1. **Configure GitHub Secrets** at `Settings > Secrets and variables > Actions`:
+   - `PRIVATE_KEY` - Deployer wallet private key
+   - `BASE_SEPOLIA_RPC_URL` - Base Sepolia RPC (default: https://sepolia.base.org)
+   - `BASE_RPC_URL` - Base Mainnet RPC (default: https://mainnet.base.org)
+   - `BASESCAN_API_KEY` - BaseScan API key for verification
+   - `GPG_PRIVATE_KEY` - GPG private key for signed commits
+   - `GPG_KEY_ID` - GPG key ID
+   - `GH_PAT` - GitHub Personal Access Token
+
+2. **Run Deployment**:
+   - Go to Actions → Deploy workflow
+   - Select network: `base_sepolia` (testnet) or `base` (mainnet)
+   - Click "Run workflow"
+
+Deployment automatically verifies contracts on BaseScan and commits addresses to `deployments/<network>.json`.
+
+### Network Deployments
 
 **Base Mainnet (Chain ID: 8453)**
-- Coming soon
+- Deployment pending
 
 **Base Sepolia (Chain ID: 84532)**
-- Coming soon
+- Deployment pending
 
 ## Integration Examples
 

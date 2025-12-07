@@ -42,42 +42,98 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
         run: |
-          forge script script/v1/DeployLoopTemplateV1.s.sol:DeployLoopTemplateV1 --rpc-url ${{ steps.rpc.outputs.url }} --broadcast --verify
+          forge script script/v1/DeployLoopTemplateV1.s.sol:DeployLoopTemplateV1 \
+            --rpc-url ${{ steps.rpc.outputs.url }} \
+            --broadcast \
+            --verify \
+            --slow \
+            -vvv
+
+      - name: Deploy MandateV1
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+        run: |
+          forge script script/v1/DeployMandateV1.s.sol:DeployMandateV1 \
+            --rpc-url ${{ steps.rpc.outputs.url }} \
+            --broadcast \
+            --verify \
+            --slow \
+            -vvv
 
       - name: Extract deployment addresses
         id: addresses
         run: |
-          BROADCAST_FILE=$(find broadcast/*/DeployLoopTemplateV1.s.sol -name "*.json" | tail -1)
-          if [ -f "$BROADCAST_FILE" ]; then
-            IMPL=$(jq -r '.transactions[] | select(.contractName == "LoopTemplateV1") | .contractAddress' $BROADCAST_FILE | head -1)
-            PROXY=$(jq -r '.transactions[] | select(.contractName == "ERC1967Proxy") | .contractAddress' $BROADCAST_FILE | head -1)
-            echo "implementation=$IMPL" >> $GITHUB_OUTPUT
-            echo "proxy=$PROXY" >> $GITHUB_OUTPUT
-            echo "Found Implementation: $IMPL"
-            echo "Found Proxy: $PROXY"
+          # LoopTemplateV1
+          LOOP_BROADCAST=$(find broadcast/*/DeployLoopTemplateV1.s.sol -name "*.json" | tail -1)
+          if [ -f "$LOOP_BROADCAST" ]; then
+            LOOP_IMPL=$(jq -r '.transactions[] | select(.contractName == "LoopTemplateV1") | .contractAddress' $LOOP_BROADCAST | head -1)
+            LOOP_PROXY=$(jq -r '.transactions[] | select(.contractName == "ERC1967Proxy") | .contractAddress' $LOOP_BROADCAST | head -1)
+            echo "loop_implementation=$LOOP_IMPL" >> $GITHUB_OUTPUT
+            echo "loop_proxy=$LOOP_PROXY" >> $GITHUB_OUTPUT
+            echo "LoopTemplateV1 Implementation: $LOOP_IMPL"
+            echo "LoopTemplateV1 Proxy: $LOOP_PROXY"
+          fi
+
+          # MandateV1
+          MANDATE_BROADCAST=$(find broadcast/*/DeployMandateV1.s.sol -name "*.json" | tail -1)
+          if [ -f "$MANDATE_BROADCAST" ]; then
+            MANDATE_IMPL=$(jq -r '.transactions[] | select(.contractName == "MandateV1") | .contractAddress' $MANDATE_BROADCAST | head -1)
+            MANDATE_PROXY=$(jq -r '.transactions[] | select(.contractName == "ERC1967Proxy") | .contractAddress' $MANDATE_BROADCAST | tail -1)
+            echo "mandate_implementation=$MANDATE_IMPL" >> $GITHUB_OUTPUT
+            echo "mandate_proxy=$MANDATE_PROXY" >> $GITHUB_OUTPUT
+            echo "MandateV1 Implementation: $MANDATE_IMPL"
+            echo "MandateV1 Proxy: $MANDATE_PROXY"
           fi
 
       - name: Save deployment info
         run: |
           NETWORK=${{ inputs.network }}
-          mkdir -p deployments/v1
-          cat > deployments/v1/${NETWORK}.json << EOF
+          mkdir -p deployments
+          cat > deployments/${NETWORK}.json << EOF
           {
             "network": "${NETWORK}",
             "chainId": "${{ inputs.network == 'base' && '8453' || '84532' }}",
             "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "contracts": {
-              "LoopTemplateV1Implementation": "${{ steps.addresses.outputs.implementation }}",
-              "LoopTemplateV1Proxy": "${{ steps.addresses.outputs.proxy }}"
+              "LoopTemplateV1": {
+                "implementation": "${{ steps.addresses.outputs.loop_implementation }}",
+                "proxy": "${{ steps.addresses.outputs.loop_proxy }}"
+              },
+              "MandateV1": {
+                "implementation": "${{ steps.addresses.outputs.mandate_implementation }}",
+                "proxy": "${{ steps.addresses.outputs.mandate_proxy }}"
+              }
             }
           }
           EOF
-          cat deployments/v1/${NETWORK}.json
+          cat deployments/${NETWORK}.json
+
+      - name: Import GPG key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ secrets.GPG_KEY_ID }}:6:" | gpg --batch --import-ownertrust
 
       - name: Commit deployment addresses
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add deployments/v1/${{ inputs.network }}.json
-          git commit -m "deploy: add ${{ inputs.network }} deployment addresses for LoopTemplateV1" || echo "No changes to commit"
-          git push
+          git config user.name "stas-ivanovich"
+          git config user.email "stativanov@outlook.com"
+          git config user.signingkey ${{ secrets.GPG_KEY_ID }}
+          git config commit.gpgsign true
+
+          git add deployments/${{ inputs.network }}.json broadcast/
+          git commit -m "deploy: LoopTemplateV1 and MandateV1 to ${{ inputs.network }}
+
+          Network: ${{ inputs.network }}
+          Chain ID: ${{ inputs.network == 'base' && '8453' || '84532' }}
+
+          LoopTemplateV1:
+            Implementation: ${{ steps.addresses.outputs.loop_implementation }}
+            Proxy: ${{ steps.addresses.outputs.loop_proxy }}
+
+          MandateV1:
+            Implementation: ${{ steps.addresses.outputs.mandate_implementation }}
+            Proxy: ${{ steps.addresses.outputs.mandate_proxy }}" || echo "No changes to commit"
+
+          git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/stas-ivanovich/LoopPay.git
+          git push origin ${{ github.ref_name }}
