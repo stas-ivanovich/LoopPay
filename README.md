@@ -94,7 +94,8 @@ Deployment automatically verifies contracts on BaseScan and commits addresses to
 - Deployment pending
 
 **Base Sepolia (Chain ID: 84532)**
-- Deployment pending
+- MandateV1 Proxy: [`0xd0046799Ce865f09f673A3297aa56E4244df08Cf`](https://sepolia.basescan.org/address/0xd0046799Ce865f09f673A3297aa56E4244df08Cf)
+- MandateV1 Implementation: [`0xaabc610222fFcD5c88ED29bE9fc2B33Ffa9d6dC8`](https://sepolia.basescan.org/address/0xaabc610222fFcD5c88ED29bE9fc2B33Ffa9d6dC8)
 
 ## Integration Examples
 
