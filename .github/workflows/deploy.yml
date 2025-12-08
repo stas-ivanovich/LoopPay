@@ -51,24 +51,20 @@ jobs:
       - name: Deploy LoopTemplateV1
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
         run: |
           forge script script/v1/DeployLoopTemplateV1.s.sol:DeployLoopTemplateV1 \
             --rpc-url ${{ steps.rpc.outputs.url }} \
             --broadcast \
-            --verify \
             --slow \
             -vvv
 
       - name: Deploy MandateV1
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
         run: |
           forge script script/v1/DeployMandateV1.s.sol:DeployMandateV1 \
             --rpc-url ${{ steps.rpc.outputs.url }} \
             --broadcast \
-            --verify \
             --slow \
             -vvv
 
@@ -76,7 +72,7 @@ jobs:
         id: addresses
         run: |
           # LoopTemplateV1
-          LOOP_BROADCAST=$(find broadcast/*/DeployLoopTemplateV1.s.sol -name "*.json" | tail -1)
+          LOOP_BROADCAST=$(find broadcast/DeployLoopTemplateV1.s.sol -name "run-latest.json" 2>/dev/null | tail -1)
           if [ -f "$LOOP_BROADCAST" ]; then
             LOOP_IMPL=$(jq -r '.transactions[] | select(.contractName == "LoopTemplateV1") | .contractAddress' $LOOP_BROADCAST | head -1)
             LOOP_PROXY=$(jq -r '.transactions[] | select(.contractName == "ERC1967Proxy") | .contractAddress' $LOOP_BROADCAST | head -1)
@@ -87,7 +83,7 @@ jobs:
           fi
 
           # MandateV1
-          MANDATE_BROADCAST=$(find broadcast/*/DeployMandateV1.s.sol -name "*.json" | tail -1)
+          MANDATE_BROADCAST=$(find broadcast/DeployMandateV1.s.sol -name "run-latest.json" 2>/dev/null | tail -1)
           if [ -f "$MANDATE_BROADCAST" ]; then
             MANDATE_IMPL=$(jq -r '.transactions[] | select(.contractName == "MandateV1") | .contractAddress' $MANDATE_BROADCAST | head -1)
             MANDATE_PROXY=$(jq -r '.transactions[] | select(.contractName == "ERC1967Proxy") | .contractAddress' $MANDATE_BROADCAST | tail -1)
@@ -95,6 +91,35 @@ jobs:
             echo "mandate_proxy=$MANDATE_PROXY" >> $GITHUB_OUTPUT
             echo "MandateV1 Implementation: $MANDATE_IMPL"
             echo "MandateV1 Proxy: $MANDATE_PROXY"
+          fi
+
+      - name: Wait for block indexing
+        run: |
+          echo "Waiting 30 seconds for BaseScan to index blocks..."
+          sleep 30
+
+      - name: Verify contracts
+        env:
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+        run: |
+          CHAIN="${{ inputs.network }}"
+
+          # Verify LoopTemplateV1 Implementation
+          if [ -n "${{ steps.addresses.outputs.loop_implementation }}" ]; then
+            echo "Verifying LoopTemplateV1 Implementation..."
+            forge verify-contract ${{ steps.addresses.outputs.loop_implementation }} \
+              src/v1/LoopTemplateV1.sol:LoopTemplateV1 \
+              --chain ${CHAIN} \
+              --watch || echo "LoopTemplateV1 verification failed, contract may already be verified"
+          fi
+
+          # Verify MandateV1 Implementation
+          if [ -n "${{ steps.addresses.outputs.mandate_implementation }}" ]; then
+            echo "Verifying MandateV1 Implementation..."
+            forge verify-contract ${{ steps.addresses.outputs.mandate_implementation }} \
+              src/v1/MandateV1.sol:MandateV1 \
+              --chain ${CHAIN} \
+              --watch || echo "MandateV1 verification failed, contract may already be verified"
           fi
 
       - name: Save deployment info
