@@ -1,0 +1,15 @@
+{
+  "network": "base",
+  "chainId": "8453",
+  "timestamp": "2025-12-08T11:46:38Z",
+  "contracts": {
+    "LoopTemplateV1": {
+      "implementation": "0x9ae6693feef6ad4f05d3b9314bfbb3f0e68e5409",
+      "proxy": "0xb49114d7dd3fa31c6fdceee63eff7b998c792743"
+    },
+    "MandateV1": {
+      "implementation": "0x3fb3b2d325c416baf525f9d5df6766caf7b66e3c",
+      "proxy": "0xc611e44feff362872df8543d3c02add8edd94b81"
+    }
+  }
+}

@@ -16,15 +16,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
         run: |
-          forge install foundry-rs/forge-std@v1.9.4
-          forge install OpenZeppelin/openzeppelin-contracts@v5.0.2
-          forge install OpenZeppelin/openzeppelin-contracts-upgradeable@v5.0.2
+          mkdir -p lib
+          cd lib
+          if [ ! -d "forge-std" ]; then
+            git clone --depth 1 --branch v1.12.0 https://github.com/foundry-rs/forge-std.git
+          fi
+          if [ ! -d "openzeppelin-contracts" ]; then
+            git clone --depth 1 --branch v4.9.6 https://github.com/OpenZeppelin/openzeppelin-contracts.git
+          fi
+          if [ ! -d "openzeppelin-contracts-upgradeable" ]; then
+            git clone --depth 1 --branch v4.9.6 https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable.git
+          fi
 
       - name: Set RPC URL
         id: rpc
@@ -35,9 +48,120 @@ jobs:
             echo "url=${{ secrets.BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org' }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Deploy contracts
+      - name: Deploy LoopTemplateV1
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+          forge script script/v1/DeployLoopTemplateV1.s.sol:DeployLoopTemplateV1 \
+            --rpc-url ${{ steps.rpc.outputs.url }} \
+            --broadcast \
+            --slow \
+            -vvv
+
+      - name: Deploy MandateV1
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+          forge script script/v1/DeployMandateV1.s.sol:DeployMandateV1 \
+            --rpc-url ${{ steps.rpc.outputs.url }} \
+            --broadcast \
+            --slow \
+            -vvv
+
+      - name: Extract deployment addresses
+        id: addresses
+        run: |
+          # LoopTemplateV1
+          LOOP_BROADCAST=$(find broadcast/DeployLoopTemplateV1.s.sol -name "run-latest.json" 2>/dev/null | tail -1)
+          if [ -f "$LOOP_BROADCAST" ]; then
+            LOOP_IMPL=$(jq -r '.transactions[] | select(.contractName == "LoopTemplateV1") | .contractAddress' $LOOP_BROADCAST | head -1)
+            LOOP_PROXY=$(jq -r '.transactions[] | select(.contractName == "ERC1967Proxy") | .contractAddress' $LOOP_BROADCAST | head -1)
+            echo "loop_implementation=$LOOP_IMPL" >> $GITHUB_OUTPUT
+            echo "loop_proxy=$LOOP_PROXY" >> $GITHUB_OUTPUT
+            echo "LoopTemplateV1 Implementation: $LOOP_IMPL"
+            echo "LoopTemplateV1 Proxy: $LOOP_PROXY"
+          fi
+
+          # MandateV1
+          MANDATE_BROADCAST=$(find broadcast/DeployMandateV1.s.sol -name "run-latest.json" 2>/dev/null | tail -1)
+          if [ -f "$MANDATE_BROADCAST" ]; then
+            MANDATE_IMPL=$(jq -r '.transactions[] | select(.contractName == "MandateV1") | .contractAddress' $MANDATE_BROADCAST | head -1)
+            MANDATE_PROXY=$(jq -r '.transactions[] | select(.contractName == "ERC1967Proxy") | .contractAddress' $MANDATE_BROADCAST | tail -1)
+            echo "mandate_implementation=$MANDATE_IMPL" >> $GITHUB_OUTPUT
+            echo "mandate_proxy=$MANDATE_PROXY" >> $GITHUB_OUTPUT
+            echo "MandateV1 Implementation: $MANDATE_IMPL"
+            echo "MandateV1 Proxy: $MANDATE_PROXY"
+          fi
+
+      - name: Wait for block indexing
+        run: |
+          echo "Waiting 30 seconds for BaseScan to index blocks..."
+          sleep 30
+
+      - name: Verify contracts
+        env:
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
         run: |
-          forge script script/Deploy.s.sol:DeployScript --rpc-url ${{ steps.rpc.outputs.url }} --broadcast --verify
+          CHAIN="${{ inputs.network }}"
+
+          # Verify LoopTemplateV1 Implementation
+          if [ -n "${{ steps.addresses.outputs.loop_implementation }}" ]; then
+            echo "Verifying LoopTemplateV1 Implementation..."
+            forge verify-contract ${{ steps.addresses.outputs.loop_implementation }} \
+              src/v1/LoopTemplateV1.sol:LoopTemplateV1 \
+              --chain ${CHAIN} \
+              --watch || echo "LoopTemplateV1 verification failed, contract may already be verified"
+          fi
+
+          # Verify MandateV1 Implementation
+          if [ -n "${{ steps.addresses.outputs.mandate_implementation }}" ]; then
+            echo "Verifying MandateV1 Implementation..."
+            forge verify-contract ${{ steps.addresses.outputs.mandate_implementation }} \
+              src/v1/MandateV1.sol:MandateV1 \
+              --chain ${CHAIN} \
+              --watch || echo "MandateV1 verification failed, contract may already be verified"
+          fi
+
+      - name: Save deployment info
+        run: |
+          NETWORK=${{ inputs.network }}
+          mkdir -p deployments
+          cat > deployments/${NETWORK}.json << EOF
+          {
+            "network": "${NETWORK}",
+            "chainId": "${{ inputs.network == 'base' && '8453' || '84532' }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "contracts": {
+              "LoopTemplateV1": {
+                "implementation": "${{ steps.addresses.outputs.loop_implementation }}",
+                "proxy": "${{ steps.addresses.outputs.loop_proxy }}"
+              },
+              "MandateV1": {
+                "implementation": "${{ steps.addresses.outputs.mandate_implementation }}",
+                "proxy": "${{ steps.addresses.outputs.mandate_proxy }}"
+              }
+            }
+          }
+          EOF
+          cat deployments/${NETWORK}.json
+
+      - name: Commit deployment addresses
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add deployments/${{ inputs.network }}.json broadcast/
+          git commit -m "deploy: LoopTemplateV1 and MandateV1 to ${{ inputs.network }}
+
+          Network: ${{ inputs.network }}
+          Chain ID: ${{ inputs.network == 'base' && '8453' || '84532' }}
+
+          LoopTemplateV1:
+            Implementation: ${{ steps.addresses.outputs.loop_implementation }}
+            Proxy: ${{ steps.addresses.outputs.loop_proxy }}
+
+          MandateV1:
+            Implementation: ${{ steps.addresses.outputs.mandate_implementation }}
+            Proxy: ${{ steps.addresses.outputs.mandate_proxy }}" || echo "No changes to commit"
+
+          git push

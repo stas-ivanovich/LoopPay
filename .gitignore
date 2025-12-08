@@ -4,8 +4,12 @@ node_modules/
 .env
 .DS_Store
 coverage/
-broadcast/
 lib/
+
+# Keep deployment records but ignore sensitive data
+broadcast/**/dry-run/
+broadcast/**/*-latest.json
+!broadcast/**/run-latest.json
 
 *.log
 *.swp

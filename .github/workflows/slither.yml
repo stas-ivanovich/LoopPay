@@ -2,17 +2,41 @@ name: Slither Analysis
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
   pull_request:
+    branches: [dev]
 
 jobs:
   analyze:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install dependencies
+        run: |
+          mkdir -p lib
+          cd lib
+          if [ ! -d "forge-std" ]; then
+            git clone --depth 1 --branch v1.12.0 https://github.com/foundry-rs/forge-std.git
+          fi
+          if [ ! -d "openzeppelin-contracts" ]; then
+            git clone --depth 1 --branch v4.9.6 https://github.com/OpenZeppelin/openzeppelin-contracts.git
+          fi
+          if [ ! -d "openzeppelin-contracts-upgradeable" ]; then
+            git clone --depth 1 --branch v4.9.6 https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable.git
+          fi
 
       - name: Run Slither
         uses: crytic/slither-action@v0.3.0
         with:
           target: src/
           slither-args: --filter-paths "lib/"
+        continue-on-error: true

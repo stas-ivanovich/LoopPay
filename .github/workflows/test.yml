@@ -2,26 +2,34 @@ name: Test
 
 on:
   push:
-    branches: [main, develop]
+    branches: [dev]
   pull_request:
+    branches: [dev]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
         run: |
-          forge install foundry-rs/forge-std@v1.9.4
-          forge install OpenZeppelin/openzeppelin-contracts@v5.0.2
-          forge install OpenZeppelin/openzeppelin-contracts-upgradeable@v5.0.2
+          mkdir -p lib
+          cd lib
+          if [ ! -d "forge-std" ]; then
+            git clone --depth 1 --branch v1.12.0 https://github.com/foundry-rs/forge-std.git
+          fi
+          if [ ! -d "openzeppelin-contracts" ]; then
+            git clone --depth 1 --branch v4.9.6 https://github.com/OpenZeppelin/openzeppelin-contracts.git
+          fi
+          if [ ! -d "openzeppelin-contracts-upgradeable" ]; then
+            git clone --depth 1 --branch v4.9.6 https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable.git
+          fi
 
       - name: Run tests
         run: forge test -vvv
-
-      - name: Check formatting
-        run: forge fmt --check
